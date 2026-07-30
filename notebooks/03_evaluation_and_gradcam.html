@@ -380,7 +380,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Everything below uses the best checkpoint from notebook 02 and the held-out <strong>test</strong> split from notebook 01, which is the one set of images that has been touched by neither training nor checkpoint selection. Notebook 02 chose its checkpoint by validation loss, so the validation score is a maximum taken over every epoch and is biased upward. The numbers below are not.</p>
 <section id="imports-and-setup" class="level2">
 <h2 class="anchored" data-anchor-id="imports-and-setup">Imports and setup</h2>
-<div id="cell-3" class="cell" data-execution_count="2">
+<div id="adce97eb" class="cell" data-execution_count="2">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
@@ -409,7 +409,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 <p>The model is rebuilt with <code>pretrained=False</code> before loading the checkpoint, since there is no sense downloading ImageNet weights only to immediately overwrite them with our fine-tuned ones. The evaluation transform is deterministic, which matters here: Grad-CAM and the error analysis both need the <em>same</em> image every time they index into the dataset.</p>
-<div id="cell-5" class="cell" data-execution_count="3">
+<div id="1e2181fa" class="cell" data-execution_count="3">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> build_model(num_classes<span class="op">=</span><span class="dv">2</span>, pretrained<span class="op">=</span><span class="va">False</span>)</span>
@@ -434,7 +434,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="metrics">Metrics</h2>
 <p><code>predict_probabilities</code> returns softmax outputs rather than hard labels. Keeping the probabilities is what makes the error analysis at the end possible: ranking mistakes by confidence requires knowing how confident the model was, which <code>argmax</code> discards.</p>
 <p>On a balanced dataset, accuracy, macro precision, and macro recall will be close together. The per-class breakdown is the informative part: a precision/recall imbalance <em>within</em> a class means the model has an asymmetric bias, mistaking one class for the other more readily than the reverse.</p>
-<div id="cell-7" class="cell" data-execution_count="4">
+<div id="c6bf6c83" class="cell" data-execution_count="4">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>probs <span class="op">=</span> predict_probabilities(model, test_loader, device)</span>
@@ -485,7 +485,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="confusion-matrix">Confusion matrix</h2>
 <p>With only two classes the confusion matrix holds four numbers, but it answers a question the metrics table does not pose directly: are the off-diagonal counts balanced?</p>
 <p>Roughly equal off-diagonals mean the model is simply wrong occasionally. A lopsided matrix, with many more cats called dogs than the reverse, points to a systematic bias, and since notebook 01 confirmed the classes are balanced and the split was stratified, such a bias could not be blamed on the data distribution.</p>
-<div id="cell-9" class="cell" data-execution_count="5">
+<div id="28d98abc" class="cell" data-execution_count="5">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> compute_confusion_matrix(test_labels, preds)</span>
@@ -528,7 +528,7 @@ dogs misread as cats: 20</code></pre>
 <p>The mechanism is short enough to state precisely. Take the score for the predicted class and backpropagate it to the final convolutional block’s activation maps. Average each channel’s gradient spatially. That average is how much the class score would change if that channel were more active, so it serves as the channel’s importance weight. Sum the activation maps weighted by those importances, discard negative contributions with a ReLU, and upsample the result to the input size. Regions that survive are the regions that pushed the prediction toward the chosen class.</p>
 <p><code>src/catsdogs/gradcam.py</code> implements this directly with forward and backward hooks rather than pulling in a Grad-CAM library. For a case study the implementation <em>is</em> part of the demonstration, and it keeps the dependency list short.</p>
 <p>One honest caveat about resolution: <code>layer4</code> outputs a 7x7 spatial grid for a 224x224 input, so each heatmap cell covers a 32x32 pixel region. These maps localize to “the animal’s head” but never to fine detail, and the smooth blobs are an artifact of bilinear upsampling, not evidence of smooth attention. Reading them as precise pixel attributions would be overinterpreting.</p>
-<div id="cell-11" class="cell" data-execution_count="6">
+<div id="dbf33648" class="cell" data-execution_count="6">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>cam <span class="op">=</span> GradCAM(model, model.layer4[<span class="op">-</span><span class="dv">1</span>])</span>
@@ -548,7 +548,7 @@ dogs misread as cats: 20</code></pre>
 </details>
 </div>
 <p>Correct predictions first, as a baseline for what healthy attention looks like. Expect the heat to concentrate on the animal, typically the face, rather than on background. If it consistently landed on furniture, grass, or image borders, high accuracy would be a warning sign rather than a success: the model would be exploiting dataset artifacts that will not survive contact with new photographs.</p>
-<div id="cell-13" class="cell" data-execution_count="7">
+<div id="2a69e1a2" class="cell" data-execution_count="7">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>correct_idx <span class="op">=</span> np.flatnonzero(preds <span class="op">==</span> test_labels)[:<span class="dv">4</span>]</span>
@@ -581,7 +581,7 @@ dogs misread as cats: 20</code></pre>
 </div>
 </div>
 <p>Now the same treatment for mistakes. These are the more interesting maps, because they separate two very different kinds of failure: the model looked at the right subject and still misjudged it, or it looked somewhere unhelpful entirely. Only the second is really an attention problem, and the distinction is invisible to any metric.</p>
-<div id="cell-15" class="cell" data-execution_count="8">
+<div id="e01e1d59" class="cell" data-execution_count="8">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>wrong_idx <span class="op">=</span> np.flatnonzero(preds <span class="op">!=</span> test_labels)[:<span class="dv">4</span>]</span>
@@ -618,7 +618,7 @@ dogs misread as cats: 20</code></pre>
 <h2 class="anchored" data-anchor-id="error-analysis-the-most-confidently-wrong-predictions">Error analysis: the most confidently wrong predictions</h2>
 <p>Not all mistakes are equally informative. An image the model called a dog with 51% confidence is a coin flip near the decision boundary and tells us little. An image it called a dog with 99% confidence <em>and got wrong</em> is a real failure of the learned representation, or a mislabeled file.</p>
 <p><code>most_confident_errors</code> ranks misclassified examples by the probability assigned to the wrong class, surfacing the worst cases first. This is the cell to read closely, because a web-scraped dataset of this kind tends to hide a few pathological images in the tail: frames containing both a cat and a dog, animals barely visible in the shot, and occasionally files that are not animal photographs at all. Whether any of those actually appear here is exactly what the figure below settles.</p>
-<div id="cell-17" class="cell" data-execution_count="9">
+<div id="7c9c851d" class="cell" data-execution_count="9">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>worst_idx <span class="op">=</span> most_confident_errors(test_labels, probs, k<span class="op">=</span><span class="dv">6</span>)</span>

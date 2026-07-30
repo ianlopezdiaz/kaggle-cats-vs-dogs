@@ -1,0 +1,1 @@
+Sitemap: https://ianlopezdiaz.github.io/kaggle-cats-vs-dogs/sitemap.xml

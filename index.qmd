@@ -5,7 +5,7 @@ description: "A compact case study fine-tuning a pretrained CNN on real photogra
 
 ## Overview
 
-This project is a compact computer vision case study, built on Kaggle's **Dogs vs. Cats** dataset: 25,000 labeled photographs of cats and dogs.
+This project is a compact computer vision case study, built on the **Cats vs. Dogs** dataset: roughly 25,000 labeled photographs of cats and dogs.
 
 The approach is transfer learning: fine-tuning a backbone pretrained on a large image corpus rather than training a network from scratch. The images are real photographs, with varied lighting, pose, background, and occlusion. The goal isn't to chase leaderboard accuracy; it's to demonstrate a real, current computer vision workflow: standard augmentation, evaluation beyond accuracy, and Grad-CAM visualization of what the model is actually looking at.
 
@@ -23,21 +23,21 @@ Given a photograph of a cat or a dog, the system must:
 
 ## Methodology
 
-* Stratified train/validation split of the labeled Kaggle images.
+* An integrity pass that drops undecodable files, then a stratified 70/15/15 train/validation/test split of the labeled images.
 * Standard photographic augmentation: horizontal flip, rotation, color jitter, resize/crop to the backbone's expected input size.
 * A pretrained ResNet18 backbone with its final classification head replaced for binary output.
 * Fine-tune with early layers frozen, then optionally unfreeze the last few blocks for a short additional phase.
-* Evaluate: accuracy, precision, recall, F1, confusion matrix, Grad-CAM on a sample of correct and incorrect predictions, and error analysis on the most confidently wrong predictions.
+* Evaluate on the held-out test set, which neither training nor checkpoint selection ever sees: accuracy, precision, recall, F1, confusion matrix, Grad-CAM on a sample of correct and incorrect predictions, and error analysis on the most confidently wrong predictions.
 
 ---
 
 ## Dataset
 
-The project uses the **Dogs vs. Cats** dataset from Kaggle.
+The project uses the **Microsoft Cats vs. Dogs** dataset, as distributed on Kaggle.
 
-* Competition: [https://www.kaggle.com/competitions/dogs-vs-cats](https://www.kaggle.com/competitions/dogs-vs-cats)
+* Dataset: [https://www.kaggle.com/datasets/shaunthesheep/microsoft-catsvsdogs-dataset](https://www.kaggle.com/datasets/shaunthesheep/microsoft-catsvsdogs-dataset)
 
-25,000 labeled training photographs (cat vs. dog), real-world images with varied lighting, pose, background, and occlusion.
+Roughly 25,000 labeled photographs (cat vs. dog), real-world images with varied lighting, pose, background, and occlusion. They arrive as one folder per class with no predefined train/test division, so every split used here is produced in notebook 01 and written to disk for the later notebooks to read.
 
 ---
 
@@ -73,7 +73,7 @@ kaggle-cats-vs-dogs/
 │
 ├── data/
 │   ├── raw/                                      # Original Kaggle images (gitignored).
-│   └── processed/                                # Train/val split, if materialized (gitignored).
+│   └── processed/                                # Train/val/test split CSVs (gitignored).
 │
 ├── outputs/
 │   ├── checkpoints/                               # Saved model weights (gitignored).

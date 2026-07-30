@@ -1,8 +1,9 @@
 """Image listing, stratified splitting, augmentation, and the Dataset/DataLoader
-pipeline for the Kaggle Dogs vs. Cats images.
+pipeline for the Dogs vs. Cats images.
 
-Expects images laid out as a flat directory of ``cat.<n>.jpg`` / ``dog.<n>.jpg``
-files, matching the Kaggle ``train/`` folder.
+Expects the images laid out as one directory per class, ``Cat/`` and ``Dog/``,
+each holding numbered files. The class is taken from the directory name, so the
+individual filenames carry no meaning.
 """
 
 from pathlib import Path
@@ -14,40 +15,105 @@ from torchvision import transforms
 
 CLASS_NAMES = ["cat", "dog"]
 
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".gif"}
+
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
 
 def list_image_paths(data_dir: Path) -> list[Path]:
-    """List every ``cat.*``/``dog.*`` image file directly under ``data_dir``."""
-    return sorted(p for p in data_dir.iterdir() if p.suffix.lower() in {".jpg", ".jpeg"})
+    """List every image under ``data_dir``'s per-class subdirectories.
+
+    Looks for one subdirectory per entry in ``CLASS_NAMES``, matched
+    case-insensitively so that either ``Cat/`` or ``cat/`` works. Non-image
+    files that ship alongside the photographs, notably ``Thumbs.db``, are
+    filtered out by suffix.
+    """
+    paths: list[Path] = []
+    for name in CLASS_NAMES:
+        class_dir = _class_directory(data_dir, name)
+        paths.extend(p for p in class_dir.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES)
+    return sorted(paths)
 
 
-def label_from_filename(path: Path) -> int:
-    """0 for ``cat.*``, 1 for ``dog.*``, matching ``CLASS_NAMES``."""
-    return CLASS_NAMES.index(path.name.split(".")[0])
+def _class_directory(data_dir: Path, class_name: str) -> Path:
+    """Locate the subdirectory for ``class_name``, ignoring case."""
+    for child in data_dir.iterdir():
+        if child.is_dir() and child.name.lower() == class_name:
+            return child
+    raise FileNotFoundError(f"no '{class_name}' directory under {data_dir}")
+
+
+def label_from_path(path: Path) -> int:
+    """0 for an image under ``Cat/``, 1 for one under ``Dog/``.
+
+    The index matches ``CLASS_NAMES``. The parent directory name is the label;
+    the filename itself is ignored.
+    """
+    return CLASS_NAMES.index(path.parent.name.lower())
+
+
+def is_loadable(path: Path) -> bool:
+    """Whether PIL can fully decode ``path`` into RGB.
+
+    A handful of files in the distributed archive are truncated or are not
+    images at all despite their extension. Decoding each one up front is
+    cheaper than having a DataLoader worker die mid-epoch.
+    """
+    try:
+        with Image.open(path) as image:
+            image.convert("RGB").load()
+    except Exception:
+        return False
+    return True
+
+
+def filter_loadable(paths: list[Path]) -> tuple[list[Path], list[Path]]:
+    """Split ``paths`` into (loadable, rejected)."""
+    loadable, rejected = [], []
+    for path in paths:
+        (loadable if is_loadable(path) else rejected).append(path)
+    return loadable, rejected
 
 
 def class_balance(paths: list[Path]) -> dict[str, int]:
     """Count of images per class name."""
     counts = {name: 0 for name in CLASS_NAMES}
     for path in paths:
-        counts[CLASS_NAMES[label_from_filename(path)]] += 1
+        counts[CLASS_NAMES[label_from_path(path)]] += 1
     return counts
 
 
 def stratified_split(
-    paths: list[Path], val_fraction: float = 0.15, seed: int = 0
-) -> tuple[list[Path], list[int], list[Path], list[int]]:
-    """Class-balanced train/validation split.
+    paths: list[Path], val_fraction: float = 0.15, test_fraction: float = 0.15, seed: int = 0
+) -> dict[str, tuple[list[Path], list[int]]]:
+    """Class-balanced three-way train/validation/test split.
 
-    Returns (train_paths, train_labels, val_paths, val_labels).
+    The validation set drives checkpoint selection during training; the test
+    set is untouched until final evaluation, so the reported metrics do not
+    come from the same images that chose the model.
+
+    Returns a dict keyed ``"train"``, ``"val"``, ``"test"``, each mapping to a
+    (paths, labels) pair.
     """
-    labels = [label_from_filename(p) for p in paths]
-    train_paths, val_paths, train_labels, val_labels = train_test_split(
-        paths, labels, test_size=val_fraction, stratify=labels, random_state=seed
+    labels = [label_from_path(p) for p in paths]
+
+    holdout_fraction = val_fraction + test_fraction
+    train_paths, holdout_paths, train_labels, holdout_labels = train_test_split(
+        paths, labels, test_size=holdout_fraction, stratify=labels, random_state=seed
     )
-    return train_paths, train_labels, val_paths, val_labels
+    val_paths, test_paths, val_labels, test_labels = train_test_split(
+        holdout_paths,
+        holdout_labels,
+        test_size=test_fraction / holdout_fraction,
+        stratify=holdout_labels,
+        random_state=seed,
+    )
+    return {
+        "train": (train_paths, train_labels),
+        "val": (val_paths, val_labels),
+        "test": (test_paths, test_labels),
+    }
 
 
 def build_transforms(train: bool, image_size: int = 224) -> transforms.Compose:

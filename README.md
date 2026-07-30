@@ -14,9 +14,9 @@ Dogs vs. Cats is a binary classification task over real photographs (varied ligh
 
 The complete pipeline includes:
 
-* Stratified train/validation split and a standard photographic augmentation pipeline
+* Integrity filtering, a stratified train/validation/test split, and a standard photographic augmentation pipeline
 * A pretrained ResNet18 backbone, fine-tuned with a replaced binary classification head
-* Evaluation beyond accuracy: confusion matrix, per-class precision/recall/F1
+* Evaluation on a held-out test set the training run never sees: confusion matrix, per-class precision/recall/F1
 * Grad-CAM visualization of model attention on correct and incorrect predictions
 * Error analysis on the most confidently wrong predictions
 
@@ -24,11 +24,13 @@ The complete pipeline includes:
 
 ## Dataset
 
-The project uses the **Dogs vs. Cats** dataset from Kaggle.
+The project uses the **Microsoft Cats vs. Dogs** dataset, as distributed on Kaggle.
 
-* Competition: [https://www.kaggle.com/competitions/dogs-vs-cats](https://www.kaggle.com/competitions/dogs-vs-cats)
+* Dataset: [https://www.kaggle.com/datasets/shaunthesheep/microsoft-catsvsdogs-dataset](https://www.kaggle.com/datasets/shaunthesheep/microsoft-catsvsdogs-dataset)
 
-25,000 labeled training photographs (cat vs. dog).
+Roughly 25,000 labeled photographs, split evenly between the two classes and organized as one folder per class. There is no predefined train/test division, so notebook 01 produces a stratified 70/15/15 train/validation/test split and writes it to `data/processed/` for the later notebooks to read.
+
+Two details about this archive are worth knowing before working with it, both surfaced in notebook 01. A few hundred files carry a `.jpg` extension while actually containing BMP, GIF, or PNG data, which is harmless only because the pipeline decodes through PIL rather than trusting the extension. And the dataset is widely reported to contain a couple of undecodable files, so the pipeline runs an integrity pass and drops anything that fails to load.
 
 ---
 
@@ -62,7 +64,7 @@ kaggle-cats-vs-dogs/
 │
 ├── data/
 │   ├── raw/                                      # Original Kaggle images (gitignored).
-│   └── processed/                                # Train/val split, if materialized (gitignored).
+│   └── processed/                                # Train/val/test split CSVs (gitignored).
 │
 ├── outputs/
 │   ├── checkpoints/                               # Saved model weights (gitignored).
@@ -90,7 +92,15 @@ pip install -e ".[dev]"
 
 ### Get the data
 
-Download and unzip the [competition data](https://www.kaggle.com/competitions/dogs-vs-cats/data) into `data/raw/`, so that `data/raw/train/` contains the labeled `cat.N.jpg` / `dog.N.jpg` images.
+Download and unzip the [dataset](https://www.kaggle.com/datasets/shaunthesheep/microsoft-catsvsdogs-dataset) into `data/raw/`, so that the layout is:
+
+```text
+data/raw/PetImages/
+├── Cat/          # 0.jpg, 1.jpg, ...
+└── Dog/          # 0.jpg, 1.jpg, ...
+```
+
+The class label comes from the folder name, so the numbered filenames themselves carry no meaning and restart from zero in each folder.
 
 ### Run the notebooks
 

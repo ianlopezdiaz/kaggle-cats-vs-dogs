@@ -1,0 +1,43 @@
+project:
+  type: website
+
+# Render the notebooks' committed outputs; never re-execute them. The images
+# and trained checkpoint they depend on are gitignored, so execution can only
+# happen locally. Notebooks must therefore be committed with their outputs.
+execute:
+  enabled: false
+
+website:
+  title: "Transfer Learning on the Kaggle Dogs vs. Cats Dataset"
+  description: "A compact case study fine-tuning a pretrained CNN on real photographs, with Grad-CAM visualization and error analysis."
+  site-url: "https://ianlopezdiaz.github.io/kaggle-cats-vs-dogs"
+  #favicon: images/favicon.ico # optional - remove if there is none
+  navbar:
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "EDA"
+        href: notebooks/01_eda.ipynb
+      - text: "Training"
+        href: notebooks/02_training.ipynb
+      - text: "Evaluation & Grad-CAM"
+        href: notebooks/03_evaluation_and_gradcam.ipynb
+    right:
+      - text: Portfolio
+        href: https://ianlopezdiaz.github.io/portfolio
+      - icon: github
+        href: https://github.com/ianlopezdiaz/kaggle-cats-vs-dogs
+
+  page-footer:
+    left: "(c) 2026 ianlopezdiaz"
+    right: "Built with [Quarto](https://quarto.org/)"
+
+format:
+  html:
+    theme:
+      dark: solar
+      light: minty
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    highlight-style: github

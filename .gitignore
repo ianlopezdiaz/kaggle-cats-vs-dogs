@@ -1,0 +1,27 @@
+# data
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# model artifacts
+outputs/checkpoints/*
+!outputs/checkpoints/.gitkeep
+
+# quarto
+/.quarto/
+/_site/
+
+# jupyter
+.ipynb_checkpoints/
+
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+build/
+dist/
+
+**/*.quarto_ipynb

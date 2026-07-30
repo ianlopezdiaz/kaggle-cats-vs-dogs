@@ -1,0 +1,37 @@
+name: Publish site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Note: this workflow renders the notebooks as committed and does not execute
+# them. That is deliberate and differs from a pure-tabular project, where the
+# dataset is small enough to commit and the notebooks can be re-run in CI.
+# Here the notebooks cannot run on a runner:
+#
+#   * The 25,000 Kaggle images are gitignored and need Kaggle credentials.
+#   * Fine-tuning a CNN needs a GPU; ubuntu-latest has none.
+#   * Notebooks 02 and 03 depend on a trained checkpoint, also gitignored.
+#
+# So notebooks must be executed locally and committed WITH their outputs.
+# `execute: enabled: false` in _quarto.yml enforces the render-only behavior.
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render and publish to gh-pages
+        uses: quarto-dev/quarto-actions/publish@v2
+        with:
+          target: gh-pages
+          render: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

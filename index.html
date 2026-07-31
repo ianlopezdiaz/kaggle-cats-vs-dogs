@@ -421,7 +421,10 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="status" class="level2">
 <h2 class="anchored" data-anchor-id="status">Status</h2>
-<p>In progress: repository scaffolded; data download, training, and evaluation not yet run.</p>
+<p>Complete. All three notebooks have been run end to end and are published with their outputs.</p>
+<p><strong>Test accuracy: 98.82%</strong> on 3,744 held-out images that neither training nor checkpoint selection ever saw. Per-class F1 is 0.988 for both classes, and the errors are close to symmetric: 24 cats read as dogs against 20 dogs read as cats.</p>
+<p>The more interesting result is the one the accuracy number hides. Grad-CAM puts the model’s attention on the animal’s face for correct predictions, and reading the same maps over its mistakes separates two different kinds of failure. The most confident errors are all cases where the model examined the animal and misread it, including one where it decided on a cat’s collar instead of its face. The lower-confidence errors include cases where attention leaves the animal for outdoor vegetation, and those are consistently cats classified as dogs: the model has partly learned that greenery predicts dog, which holds in this dataset and not in general.</p>
+<p>Notebook 03 works through that evidence and what it implies about the accuracy ceiling, which is that the remaining 44 errors are a mixture of unresolvable label noise and two specific, nameable defects rather than a deficit that more training would close.</p>
 <hr>
 
 

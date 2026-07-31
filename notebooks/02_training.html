@@ -380,7 +380,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The reason for the ordering is gradient magnitude, discussed before phase 2.</p>
 <section id="imports" class="level2">
 <h2 class="anchored" data-anchor-id="imports">Imports</h2>
-<div id="ebf87d15" class="cell" data-execution_count="2">
+<div id="ebf87d15" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:42:07.719514Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:42:07.719036Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:42:09.660019Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:42:09.659452Z&quot;}}" data-execution_count="1">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
@@ -392,7 +392,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> catsdogs.dataset <span class="im">import</span> CatsDogsDataset, build_transforms</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> catsdogs.model <span class="im">import</span> build_model, unfreeze_last_blocks</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> catsdogs.train <span class="im">import</span> fit</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> catsdogs.train <span class="im">import</span> fit, set_seed</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>PROCESSED_DIR <span class="op">=</span> Path(<span class="st">"../data/processed"</span>)</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>CHECKPOINT_PATH <span class="op">=</span> Path(<span class="st">"../outputs/checkpoints/best.pt"</span>)</span>
@@ -410,7 +410,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Both loaders read the split CSVs written by notebook 01, so this notebook cannot accidentally train on validation images. The third split, the test set, is not loaded here at all; it stays sealed until notebook 03.</p>
 <p>The two datasets differ only in their transform, and that difference is deliberate. Training gets <code>RandomResizedCrop</code> + horizontal flip + small rotation + color jitter; validation gets a deterministic resize and nothing else. Augmenting the validation set would make the metric noisy and optimistic-looking for the wrong reason.</p>
 <p>A horizontal flip is safe for photographs of animals, since a mirrored cat is still a cat. Note that this is <em>not</em> generally true: the same augmentation applied to MNIST would turn some digits into nonsense, which is a good illustration of why augmentation choices have to follow from the data rather than being copied between projects.</p>
-<div id="49b8812a" class="cell" data-execution_count="3">
+<div id="49b8812a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:42:09.661691Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:42:09.661529Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:42:09.684586Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:42:09.684332Z&quot;}}" data-execution_count="2">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>train_df <span class="op">=</span> pd.read_csv(PROCESSED_DIR <span class="op">/</span> <span class="st">"train_split.csv"</span>)</span>
@@ -442,46 +442,119 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><code>build_model</code> (<code>src/catsdogs/model.py</code>) loads pretrained ResNet18, freezes every parameter, then replaces the final fully-connected layer with a fresh 2-class one. Because the replacement happens <em>after</em> freezing, the new head is the only trainable part.</p>
 <p>That new head starts randomly initialized, so its early gradients are large. If the backbone were unfrozen now, those large gradients would propagate back through it and degrade the pretrained features we specifically want to keep, a failure mode sometimes called catastrophic forgetting. Training the head alone first lets it reach a sensible region before anything upstream is allowed to move.</p>
 <p><code>fit</code> optimizes only parameters with <code>requires_grad=True</code>, so freezing is genuinely respected by the optimizer rather than just by convention, and it saves the best- validation-loss checkpoint as it goes.</p>
-<div id="b404f097" class="cell" data-execution_count="4">
+<p><code>set_seed</code> is called before the model is built rather than before training starts, because the replaced head is randomly initialized and that initialization is part of what needs to reproduce. Without it, every re-run produces a slightly different model, which matters here: notebook 03 discusses individual misclassified files by name, and those specific examples would change underneath the text on every run.</p>
+<div id="b404f097" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:42:09.685907Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:42:09.685814Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:44:09.410860Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:44:09.410392Z&quot;}}" data-execution_count="3">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> build_model(num_classes<span class="op">=</span><span class="dv">2</span>, pretrained<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>n_trainable <span class="op">=</span> <span class="bu">sum</span>(p.numel() <span class="cf">for</span> p <span class="kw">in</span> model.parameters() <span class="cf">if</span> p.requires_grad)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>n_total <span class="op">=</span> <span class="bu">sum</span>(p.numel() <span class="cf">for</span> p <span class="kw">in</span> model.parameters())</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"trainable: </span><span class="sc">{</span>n_trainable<span class="sc">:,}</span><span class="ss"> / </span><span class="sc">{</span>n_total<span class="sc">:,}</span><span class="ss"> parameters (</span><span class="sc">{</span>n_trainable <span class="op">/</span> n_total<span class="sc">:.2%}</span><span class="ss">)"</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># seed before building the model, since the replaced head is randomly</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># initialized and would otherwise differ from run to run</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>set_seed(<span class="dv">0</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> build_model(num_classes<span class="op">=</span><span class="dv">2</span>, pretrained<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>history_phase1 <span class="op">=</span> fit(</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    model,</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    train_loader,</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    val_loader,</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    device,</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    epochs<span class="op">=</span><span class="dv">5</span>,</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    lr<span class="op">=</span><span class="fl">1e-3</span>,</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    checkpoint_path<span class="op">=</span>CHECKPOINT_PATH,</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(history_phase1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>n_trainable <span class="op">=</span> <span class="bu">sum</span>(p.numel() <span class="cf">for</span> p <span class="kw">in</span> model.parameters() <span class="cf">if</span> p.requires_grad)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>n_total <span class="op">=</span> <span class="bu">sum</span>(p.numel() <span class="cf">for</span> p <span class="kw">in</span> model.parameters())</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"trainable: </span><span class="sc">{</span>n_trainable<span class="sc">:,}</span><span class="ss"> / </span><span class="sc">{</span>n_total<span class="sc">:,}</span><span class="ss"> parameters (</span><span class="sc">{</span>n_trainable <span class="op">/</span> n_total<span class="sc">:.2%}</span><span class="ss">)"</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>history_phase1 <span class="op">=</span> fit(</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    model,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    train_loader,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    val_loader,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    device,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    epochs<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    lr<span class="op">=</span><span class="fl">1e-3</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    checkpoint_path<span class="op">=</span>CHECKPOINT_PATH,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(history_phase1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code>Downloading: "https://download.pytorch.org/models/resnet18-f37072fd.pth" to /home/ian/.cache/torch/hub/checkpoints/resnet18-f37072fd.pth</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>100.0%</code></pre>
-</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>trainable: 1,026 / 11,177,538 parameters (0.01%)</code></pre>
 </div>
-<div class="cell-output cell-output-stderr">
-<pre><code>/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))
-/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))
-/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))
-/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))
-/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))</code></pre>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">epoch</th>
+<th data-quarto-table-cell-role="th">train_loss</th>
+<th data-quarto-table-cell-role="th">val_loss</th>
+<th data-quarto-table-cell-role="th">val_accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>1</td>
+<td>0.141618</td>
+<td>0.074695</td>
+<td>0.972222</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2</td>
+<td>0.097496</td>
+<td>0.068370</td>
+<td>0.971688</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>3</td>
+<td>0.088630</td>
+<td>0.064533</td>
+<td>0.973024</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>4</td>
+<td>0.094562</td>
+<td>0.053625</td>
+<td>0.980235</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>5</td>
+<td>0.090774</td>
+<td>0.061407</td>
+<td>0.976496</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Only a few thousand of ResNet18’s ~11 million parameters are training here, which is why this phase is quick even on CPU. Validation accuracy should already be high, which is strong evidence that the pretrained features are close to sufficient and that little genuine learning is required.</p>
+</section>
+<section id="phase-2-unfreeze-the-last-residual-block" class="level2">
+<h2 class="anchored" data-anchor-id="phase-2-unfreeze-the-last-residual-block">Phase 2: unfreeze the last residual block</h2>
+<p>We reload the best phase-1 checkpoint (not necessarily the final epoch’s weights), then unfreeze <code>layer4</code> and continue at a <strong>10x lower learning rate</strong>.</p>
+<p><code>layer4</code> is the deepest block, holding the most abstract and task-specific features; the earlier blocks hold generic edge and texture detectors that transfer as-is and are better left alone. The reduced learning rate is the important detail: the head is now trained rather than random, so gradients are small, and we want to nudge these features rather than overwrite them.</p>
+<p>Whether this phase helps is an empirical question, not a guarantee, so the thing to do is compare the validation loss against phase 1 rather than assume. Here it earns its keep: the best validation loss falls from 0.0536 to 0.0313, removing roughly two fifths of the remaining error. That is worth stating as a measurement rather than a prediction. On a different dataset, or one further from ImageNet, the honest answer might well be that the second phase changes nothing, and the comparison is what tells you which case you are in.</p>
+<div id="2184bb23" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:44:09.412227Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:44:09.412123Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:10.526919Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:10.526167Z&quot;}}" data-execution_count="4">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model.load_state_dict(torch.load(CHECKPOINT_PATH))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>unfreeze_last_blocks(model, num_blocks<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>n_trainable <span class="op">=</span> <span class="bu">sum</span>(p.numel() <span class="cf">for</span> p <span class="kw">in</span> model.parameters() <span class="cf">if</span> p.requires_grad)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"trainable after unfreeze: </span><span class="sc">{</span>n_trainable<span class="sc">:,}</span><span class="ss"> / </span><span class="sc">{</span>n_total<span class="sc">:,}</span><span class="ss"> (</span><span class="sc">{</span>n_trainable <span class="op">/</span> n_total<span class="sc">:.2%}</span><span class="ss">)"</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>history_phase2 <span class="op">=</span> fit(</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    model,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    train_loader,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    val_loader,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    device,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    epochs<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    lr<span class="op">=</span><span class="fl">1e-4</span>,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    checkpoint_path<span class="op">=</span>CHECKPOINT_PATH,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(history_phase2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>trainable after unfreeze: 8,394,754 / 11,177,538 (75.10%)</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <div>
@@ -501,135 +574,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>1</td>
-<td>0.142224</td>
-<td>0.067742</td>
-<td>0.975694</td>
+<td>0.087310</td>
+<td>0.048497</td>
+<td>0.979968</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>2</td>
-<td>0.098459</td>
-<td>0.058745</td>
-<td>0.977030</td>
+<td>0.049630</td>
+<td>0.047496</td>
+<td>0.980769</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
 <td>3</td>
-<td>0.093817</td>
-<td>0.058696</td>
-<td>0.976496</td>
+<td>0.035797</td>
+<td>0.044826</td>
+<td>0.983974</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
 <td>4</td>
-<td>0.092686</td>
-<td>0.066750</td>
-<td>0.974893</td>
+<td>0.029485</td>
+<td>0.031254</td>
+<td>0.988515</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
 <td>5</td>
-<td>0.084264</td>
-<td>0.053344</td>
-<td>0.979434</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<p>Only a few thousand of ResNet18’s ~11 million parameters are training here, which is why this phase is quick even on CPU. Validation accuracy should already be high, which is strong evidence that the pretrained features are close to sufficient and that little genuine learning is required.</p>
-</section>
-<section id="phase-2-unfreeze-the-last-residual-block" class="level2">
-<h2 class="anchored" data-anchor-id="phase-2-unfreeze-the-last-residual-block">Phase 2: unfreeze the last residual block</h2>
-<p>We reload the best phase-1 checkpoint (not necessarily the final epoch’s weights), then unfreeze <code>layer4</code> and continue at a <strong>10x lower learning rate</strong>.</p>
-<p><code>layer4</code> is the deepest block, holding the most abstract and task-specific features; the earlier blocks hold generic edge and texture detectors that transfer as-is and are better left alone. The reduced learning rate is the important detail: the head is now trained rather than random, so gradients are small, and we want to nudge these features rather than overwrite them.</p>
-<p>Whether this phase helps is an empirical question, not a guarantee. Compare the validation loss against phase 1. On a task this close to ImageNet the gain is often marginal, and saying so is more honest than presenting the second phase as automatically worthwhile.</p>
-<div id="2184bb23" class="cell" data-execution_count="5">
-<details open="" class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>model.load_state_dict(torch.load(CHECKPOINT_PATH))</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>unfreeze_last_blocks(model, num_blocks<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>n_trainable <span class="op">=</span> <span class="bu">sum</span>(p.numel() <span class="cf">for</span> p <span class="kw">in</span> model.parameters() <span class="cf">if</span> p.requires_grad)</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"trainable after unfreeze: </span><span class="sc">{</span>n_trainable<span class="sc">:,}</span><span class="ss"> / </span><span class="sc">{</span>n_total<span class="sc">:,}</span><span class="ss"> (</span><span class="sc">{</span>n_trainable <span class="op">/</span> n_total<span class="sc">:.2%}</span><span class="ss">)"</span>)</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>history_phase2 <span class="op">=</span> fit(</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    model,</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    train_loader,</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    val_loader,</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    device,</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    epochs<span class="op">=</span><span class="dv">5</span>,</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    lr<span class="op">=</span><span class="fl">1e-4</span>,</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    checkpoint_path<span class="op">=</span>CHECKPOINT_PATH,</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(history_phase2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>trainable after unfreeze: 8,394,754 / 11,177,538 (75.10%)</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))
-/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))
-/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))
-/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))
-/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="5">
-<div>
-
-
-<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">epoch</th>
-<th data-quarto-table-cell-role="th">train_loss</th>
-<th data-quarto-table-cell-role="th">val_loss</th>
-<th data-quarto-table-cell-role="th">val_accuracy</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">0</th>
-<td>1</td>
-<td>0.086490</td>
-<td>0.039409</td>
-<td>0.987447</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">1</th>
-<td>2</td>
-<td>0.047039</td>
-<td>0.037328</td>
-<td>0.986378</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">2</th>
-<td>3</td>
-<td>0.035571</td>
-<td>0.041614</td>
-<td>0.985577</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">3</th>
-<td>4</td>
-<td>0.029545</td>
-<td>0.038359</td>
-<td>0.988248</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">4</th>
-<td>5</td>
-<td>0.025982</td>
-<td>0.048403</td>
-<td>0.981838</td>
+<td>0.025199</td>
+<td>0.037375</td>
+<td>0.984509</td>
 </tr>
 </tbody>
 </table>
@@ -646,36 +621,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><strong>Train/validation gap.</strong> Divergence indicates overfitting. With most of the backbone frozen there are few free parameters to overfit <em>with</em>, so a large gap here would be surprising and worth investigating.</li>
 <li><strong>Where the best checkpoint landed.</strong> <code>fit</code> tracks validation loss, so the saved weights need not come from the last epoch.</li>
 </ul>
-<div id="dd842055" class="cell" data-execution_count="6">
+<div id="dd842055" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:46:10.528538Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:46:10.528419Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:10.774934Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:10.774624Z&quot;}}" data-execution_count="5">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>history <span class="op">=</span> pd.DataFrame(history_phase1 <span class="op">+</span> history_phase2)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>history[<span class="st">"epoch"</span>] <span class="op">=</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(history) <span class="op">+</span> <span class="dv">1</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>unfreeze_at <span class="op">=</span> <span class="bu">len</span>(history_phase1) <span class="op">+</span> <span class="fl">0.5</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">4</span>))</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(history[<span class="st">"epoch"</span>], history[<span class="st">"train_loss"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"train"</span>)</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(history[<span class="st">"epoch"</span>], history[<span class="st">"val_loss"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"val"</span>)</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axvline(unfreeze_at, color<span class="op">=</span><span class="st">"gray"</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"unfreeze layer4"</span>)</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">"epoch"</span>)</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">"cross-entropy loss"</span>)</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">"Loss"</span>)</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(history[<span class="st">"epoch"</span>], history[<span class="st">"val_accuracy"</span>], marker<span class="op">=</span><span class="st">"o"</span>, color<span class="op">=</span><span class="st">"tab:green"</span>)</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axvline(unfreeze_at, color<span class="op">=</span><span class="st">"gray"</span>, linestyle<span class="op">=</span><span class="st">"--"</span>)</span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">"epoch"</span>)</span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">"accuracy"</span>)</span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">"Validation accuracy"</span>)</span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">"../outputs/figures/training_curves.png"</span>, dpi<span class="op">=</span><span class="dv">150</span>)</span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>best <span class="op">=</span> history.loc[history[<span class="st">"val_loss"</span>].idxmin()]</span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"best epoch: </span><span class="sc">{</span><span class="bu">int</span>(best[<span class="st">'epoch'</span>])<span class="sc">}</span><span class="ss"> "</span></span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(val_loss=</span><span class="sc">{</span>best[<span class="st">'val_loss'</span>]<span class="sc">:.4f}</span><span class="ss">, val_accuracy=</span><span class="sc">{</span>best[<span class="st">'val_accuracy'</span>]<span class="sc">:.4f}</span><span class="ss">)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>history <span class="op">=</span> pd.DataFrame(history_phase1 <span class="op">+</span> history_phase2)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>history[<span class="st">"epoch"</span>] <span class="op">=</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(history) <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>unfreeze_at <span class="op">=</span> <span class="bu">len</span>(history_phase1) <span class="op">+</span> <span class="fl">0.5</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">4</span>))</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(history[<span class="st">"epoch"</span>], history[<span class="st">"train_loss"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"train"</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(history[<span class="st">"epoch"</span>], history[<span class="st">"val_loss"</span>], marker<span class="op">=</span><span class="st">"o"</span>, label<span class="op">=</span><span class="st">"val"</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axvline(unfreeze_at, color<span class="op">=</span><span class="st">"gray"</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, label<span class="op">=</span><span class="st">"unfreeze layer4"</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">"epoch"</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">"cross-entropy loss"</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">"Loss"</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(history[<span class="st">"epoch"</span>], history[<span class="st">"val_accuracy"</span>], marker<span class="op">=</span><span class="st">"o"</span>, color<span class="op">=</span><span class="st">"tab:green"</span>)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axvline(unfreeze_at, color<span class="op">=</span><span class="st">"gray"</span>, linestyle<span class="op">=</span><span class="st">"--"</span>)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">"epoch"</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">"accuracy"</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">"Validation accuracy"</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">"../outputs/figures/training_curves.png"</span>, dpi<span class="op">=</span><span class="dv">150</span>)</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>best <span class="op">=</span> history.loc[history[<span class="st">"val_loss"</span>].idxmin()]</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"best epoch: </span><span class="sc">{</span><span class="bu">int</span>(best[<span class="st">'epoch'</span>])<span class="sc">}</span><span class="ss"> "</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(val_loss=</span><span class="sc">{</span>best[<span class="st">'val_loss'</span>]<span class="sc">:.4f}</span><span class="ss">, val_accuracy=</span><span class="sc">{</span>best[<span class="st">'val_accuracy'</span>]<span class="sc">:.4f}</span><span class="ss">)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
@@ -685,7 +660,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>best epoch: 7 (val_loss=0.0373, val_accuracy=0.9864)</code></pre>
+<pre><code>best epoch: 9 (val_loss=0.0313, val_accuracy=0.9885)</code></pre>
 </div>
 </div>
 </section>

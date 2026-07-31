@@ -383,7 +383,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Everything below uses the best checkpoint from notebook 02 and the held-out <strong>test</strong> split from notebook 01, which is the one set of images that has been touched by neither training nor checkpoint selection. Notebook 02 chose its checkpoint by validation loss, so the validation score is a maximum taken over every epoch and is biased upward. The numbers below are not.</p>
 <section id="imports-and-setup" class="level2">
 <h2 class="anchored" data-anchor-id="imports-and-setup">Imports and setup</h2>
-<div id="adce97eb" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:10:29.671137Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:10:29.670699Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:10:31.648007Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:10:31.647246Z&quot;}}" data-execution_count="1">
+<div id="adce97eb" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:46:34.200218Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:46:34.199688Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:36.251136Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:36.250542Z&quot;}}" data-execution_count="1">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
@@ -412,7 +412,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 <p>The model is rebuilt with <code>pretrained=False</code> before loading the checkpoint, since there is no sense downloading ImageNet weights only to immediately overwrite them with our fine-tuned ones. The evaluation transform is deterministic, which matters here: Grad-CAM and the error analysis both need the <em>same</em> image every time they index into the dataset.</p>
-<div id="1e2181fa" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:10:31.649996Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:10:31.649832Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:10:31.843241Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:10:31.842671Z&quot;}}" data-execution_count="2">
+<div id="1e2181fa" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:46:36.252670Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:46:36.252479Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:36.448388Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:36.447981Z&quot;}}" data-execution_count="2">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> build_model(num_classes<span class="op">=</span><span class="dv">2</span>, pretrained<span class="op">=</span><span class="va">False</span>)</span>
@@ -437,7 +437,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="metrics">Metrics</h2>
 <p><code>predict_probabilities</code> returns softmax outputs rather than hard labels. Keeping the probabilities is what makes the error analysis at the end possible: ranking mistakes by confidence requires knowing how confident the model was, which <code>argmax</code> discards.</p>
 <p>On a balanced dataset, accuracy, macro precision, and macro recall will be close together. The per-class breakdown is the informative part: a precision/recall imbalance <em>within</em> a class means the model has an asymmetric bias, mistaking one class for the other more readily than the reverse.</p>
-<div id="c6bf6c83" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:10:31.844629Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:10:31.844523Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:10:40.947053Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:10:40.946696Z&quot;}}" data-execution_count="3">
+<div id="c6bf6c83" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:46:36.449644Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:46:36.449559Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:45.568791Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:45.568390Z&quot;}}" data-execution_count="3">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>probs <span class="op">=</span> predict_probabilities(model, test_loader, device)</span>
@@ -449,7 +449,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(per_class_metrics(test_labels, preds), index<span class="op">=</span>CLASS_NAMES).<span class="bu">round</span>(<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>accuracy: 0.9882</code></pre>
+<pre><code>accuracy: 0.9893</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
@@ -467,15 +467,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">cat</th>
+<td>0.9883</td>
+<td>0.9904</td>
 <td>0.9893</td>
-<td>0.9872</td>
-<td>0.9882</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">dog</th>
-<td>0.9872</td>
+<td>0.9904</td>
+<td>0.9882</td>
 <td>0.9893</td>
-<td>0.9883</td>
 </tr>
 </tbody>
 </table>
@@ -488,7 +488,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="confusion-matrix">Confusion matrix</h2>
 <p>With only two classes the confusion matrix holds four numbers, but it answers a question the metrics table does not pose directly: are the off-diagonal counts balanced?</p>
 <p>Roughly equal off-diagonals mean the model is simply wrong occasionally. A lopsided matrix, with many more cats called dogs than the reverse, points to a systematic bias, and since notebook 01 confirmed the classes are balanced and the split was stratified, such a bias could not be blamed on the data distribution.</p>
-<div id="28d98abc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:10:40.948503Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:10:40.948384Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:10:41.047109Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:10:41.046660Z&quot;}}" data-execution_count="4">
+<div id="28d98abc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:46:45.569771Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:46:45.569662Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:45.675321Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:45.674941Z&quot;}}" data-execution_count="4">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> compute_confusion_matrix(test_labels, preds)</span>
@@ -520,8 +520,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>cats misread as dogs: 24
-dogs misread as cats: 20</code></pre>
+<pre><code>cats misread as dogs: 18
+dogs misread as cats: 22</code></pre>
 </div>
 </div>
 </section>
@@ -531,7 +531,7 @@ dogs misread as cats: 20</code></pre>
 <p>The mechanism is short enough to state precisely. Take the score for the predicted class and backpropagate it to the final convolutional block’s activation maps. Average each channel’s gradient spatially. That average is how much the class score would change if that channel were more active, so it serves as the channel’s importance weight. Sum the activation maps weighted by those importances, discard negative contributions with a ReLU, and upsample the result to the input size. Regions that survive are the regions that pushed the prediction toward the chosen class.</p>
 <p><code>src/catsdogs/gradcam.py</code> implements this directly with forward and backward hooks rather than pulling in a Grad-CAM library. For a case study the implementation <em>is</em> part of the demonstration, and it keeps the dependency list short.</p>
 <p>One honest caveat about resolution: <code>layer4</code> outputs a 7x7 spatial grid for a 224x224 input, so each heatmap cell covers a 32x32 pixel region. These maps localize to “the animal’s head” but never to fine detail, and the smooth blobs are an artifact of bilinear upsampling, not evidence of smooth attention. Reading them as precise pixel attributions would be overinterpreting.</p>
-<div id="dbf33648" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:10:41.048199Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:10:41.048113Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:10:41.050651Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:10:41.050354Z&quot;}}" data-execution_count="5">
+<div id="dbf33648" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:46:45.676293Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:46:45.676190Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:45.678868Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:45.678284Z&quot;}}" data-execution_count="5">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>cam <span class="op">=</span> GradCAM(model, model.layer4[<span class="op">-</span><span class="dv">1</span>])</span>
@@ -550,30 +550,35 @@ dogs misread as cats: 20</code></pre>
 <span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>Correct predictions first, as a baseline for what healthy attention looks like. Expect the heat to concentrate on the animal, typically the face, rather than on background. If it consistently landed on furniture, grass, or image borders, high accuracy would be a warning sign rather than a success: the model would be exploiting dataset artifacts that will not survive contact with new photographs.</p>
-<div id="2a69e1a2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:10:41.051609Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:10:41.051521Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:10:42.214586Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:10:42.214209Z&quot;}}" data-execution_count="6">
+<p>Correct predictions first, as a baseline for what healthy attention looks like. Two cats and two dogs, deliberately, since taking whichever examples happen to come first would sample a single class and make the baseline useless for comparing the two.</p>
+<p>Expect the heat to concentrate on the animal, typically the face, rather than on background. If it consistently landed on furniture, grass, or image borders, high accuracy would be a warning sign rather than a success: the model would be exploiting dataset artifacts that will not survive contact with new photographs.</p>
+<div id="2a69e1a2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:46:45.679923Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:46:45.679829Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:46.848790Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:46.848447Z&quot;}}" data-execution_count="6">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>correct_idx <span class="op">=</span> np.flatnonzero(preds <span class="op">==</span> test_labels)[:<span class="dv">4</span>]</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">4</span>, figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="fl">6.5</span>))</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col, idx <span class="kw">in</span> <span class="bu">enumerate</span>(correct_idx):</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    image <span class="op">=</span> test_dataset[idx][<span class="dv">0</span>].unsqueeze(<span class="dv">0</span>).to(device)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    display <span class="op">=</span> to_display_image(image)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    heatmap <span class="op">=</span> cam(image, target_class<span class="op">=</span><span class="bu">int</span>(preds[idx]))</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">0</span>, col].imshow(display)</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">0</span>, col].set_title(label_text(idx), fontsize<span class="op">=</span><span class="dv">9</span>)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">0</span>, col].axis(<span class="st">"off"</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># take two of each class rather than the first four matches, which would</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># otherwise all come from whichever class happens to sort first</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>correct_idx <span class="op">=</span> np.concatenate(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    [np.flatnonzero((preds <span class="op">==</span> test_labels) <span class="op">&amp;</span> (test_labels <span class="op">==</span> c))[:<span class="dv">2</span>] <span class="cf">for</span> c <span class="kw">in</span> (<span class="dv">0</span>, <span class="dv">1</span>)]</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">4</span>, figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="fl">6.5</span>))</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col, idx <span class="kw">in</span> <span class="bu">enumerate</span>(correct_idx):</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    image <span class="op">=</span> test_dataset[idx][<span class="dv">0</span>].unsqueeze(<span class="dv">0</span>).to(device)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    display <span class="op">=</span> to_display_image(image)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    heatmap <span class="op">=</span> cam(image, target_class<span class="op">=</span><span class="bu">int</span>(preds[idx]))</span>
 <span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">1</span>, col].imshow(overlay_heatmap(display, heatmap))</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">1</span>, col].set_title(<span class="st">"Grad-CAM"</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">1</span>, col].axis(<span class="st">"off"</span>)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">0</span>, col].imshow(display)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">0</span>, col].set_title(label_text(idx), fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">0</span>, col].axis(<span class="st">"off"</span>)</span>
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>fig.suptitle(<span class="st">"Correct predictions: original (top) and model attention (bottom)"</span>)</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">"../outputs/figures/gradcam_correct.png"</span>, dpi<span class="op">=</span><span class="dv">150</span>)</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">1</span>, col].imshow(overlay_heatmap(display, heatmap))</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">1</span>, col].set_title(<span class="st">"Grad-CAM"</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">1</span>, col].axis(<span class="st">"off"</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>fig.suptitle(<span class="st">"Correct predictions: original (top) and model attention (bottom)"</span>)</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>plt.savefig(<span class="st">"../outputs/figures/gradcam_correct.png"</span>, dpi<span class="op">=</span><span class="dv">150</span>)</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
@@ -584,7 +589,7 @@ dogs misread as cats: 20</code></pre>
 </div>
 </div>
 <p>Now the same treatment for mistakes. These are the more interesting maps, because they separate two very different kinds of failure: the model looked at the right subject and still misjudged it, or it looked somewhere unhelpful entirely. Only the second is really an attention problem, and the distinction is invisible to any metric.</p>
-<div id="e01e1d59" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:10:42.217603Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:10:42.217483Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:10:43.377095Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:10:43.376644Z&quot;}}" data-execution_count="7">
+<div id="e01e1d59" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:46:46.851985Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:46:46.851893Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:47.893847Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:47.893336Z&quot;}}" data-execution_count="7">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>wrong_idx <span class="op">=</span> np.flatnonzero(preds <span class="op">!=</span> test_labels)[:<span class="dv">4</span>]</span>
@@ -622,7 +627,7 @@ dogs misread as cats: 20</code></pre>
 <p>Not all mistakes are equally informative. An image the model called a dog with 51% confidence is a coin flip near the decision boundary and tells us little. An image it called a dog with 99% confidence <em>and got wrong</em> is a real failure of the learned representation, or a mislabeled file.</p>
 <p><code>most_confident_errors</code> ranks misclassified examples by the probability assigned to the wrong class, surfacing the worst cases first. This is the cell to read closely, because a web-scraped dataset of this kind tends to hide a few pathological images in the tail: frames containing both a cat and a dog, animals barely visible in the shot, and occasionally files that are not animal photographs at all. Whether any of those actually appear here is exactly what the figure below settles.</p>
 <p>Each image is shown with its attention map underneath, because the two questions are only worth asking together. Knowing that the model was 99% sure and wrong says nothing about <em>why</em>; the map separates a confident misreading of the animal from a confident reading of something that is not the animal at all. The map is computed for the class the model chose, not the correct one, so it shows the evidence the model believed it had rather than the evidence it missed.</p>
-<div id="7c9c851d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:10:43.378935Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:10:43.378828Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:10:45.220200Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:10:45.219659Z&quot;}}" data-execution_count="8">
+<div id="7c9c851d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:46:47.896040Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:46:47.895949Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:46:49.744929Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:46:49.744406Z&quot;}}" data-execution_count="8">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>worst_idx <span class="op">=</span> most_confident_errors(test_labels, probs, k<span class="op">=</span><span class="dv">6</span>)</span>
@@ -689,45 +694,45 @@ dogs misread as cats: 20</code></pre>
 <tbody>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
-<td>10266.jpg</td>
-<td>cat</td>
+<td>5529.jpg</td>
 <td>dog</td>
-<td>0.999048</td>
+<td>cat</td>
+<td>0.999588</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
-<td>738.jpg</td>
+<td>5474.jpg</td>
 <td>cat</td>
 <td>dog</td>
-<td>0.995372</td>
+<td>0.991921</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
-<td>6694.jpg</td>
+<td>4808.jpg</td>
 <td>dog</td>
 <td>cat</td>
-<td>0.986277</td>
+<td>0.988116</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
-<td>8959.jpg</td>
+<td>10266.jpg</td>
 <td>cat</td>
 <td>dog</td>
-<td>0.982247</td>
+<td>0.987395</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
-<td>6832.jpg</td>
-<td>cat</td>
+<td>1618.jpg</td>
 <td>dog</td>
-<td>0.957136</td>
+<td>cat</td>
+<td>0.981731</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">5</th>
-<td>8267.jpg</td>
-<td>dog</td>
+<td>9960.jpg</td>
 <td>cat</td>
-<td>0.950611</td>
+<td>dog</td>
+<td>0.971198</td>
 </tr>
 </tbody>
 </table>
@@ -737,27 +742,33 @@ dogs misread as cats: 20</code></pre>
 </div>
 <section id="discussion" class="level3">
 <h3 class="anchored" data-anchor-id="discussion">Discussion</h3>
-<p>Having the attention map under each of these six changes what can be said about them, so it is worth going through the categories with the maps in hand.</p>
-<p><strong>One is label noise, and the map settles it.</strong> <code>10266.jpg</code> is labeled cat, and the model called it dog at 0.999. The frame holds a black dog and a cat curled up against it, with the dog taking most of the upper half of the shot, and the heat sits squarely on the dog’s face while the cat stays cold. The model was not confused: it found a dog in an image labeled cat and said so. This is the clearest possible demonstration that the file is an error only by convention, and it is the kind of verdict the raw image alone could not deliver, since without the map the same picture is equally consistent with the model having latched onto the cat and blundered.</p>
-<p><strong>Four are genuine ambiguity</strong>, and in every one of them the heat lands on the animal:</p>
+<p>Having the attention map under each of these six changes what can be said about them, so it is worth going through them with the maps in hand.</p>
+<p><strong>One is label noise, and the map settles it.</strong> <code>10266.jpg</code> is labeled cat, and the model called it dog at 0.987. The frame holds a black dog and a cat curled up against it, with the dog taking most of the upper half of the shot, and the heat sits squarely on the dog’s face while the cat stays cold. The model was not confused: it found a dog in an image labeled cat and said so. This is the clearest possible demonstration that the file is an error only by convention, and it is the kind of verdict the raw image alone could not deliver, since without the map the same picture is equally consistent with the model having latched onto the cat and blundered.</p>
+<p><strong>Four are genuine ambiguity</strong>, and a theme runs through them:</p>
 <ul>
-<li><code>738.jpg</code>: the cat sits small in frame on a backlit windowsill, and attention finds it correctly, then reads it as a dog anyway.</li>
-<li><code>6694.jpg</code>: a black puppy curled on a mat, with heat centered on the curled body. A curled dark shape removes nearly every cue that separates the classes.</li>
-<li><code>6832.jpg</code>: a white long-haired cat rearing on its hind legs, a pose well outside the usual distribution, with attention on the animal’s upper body.</li>
-<li><code>8267.jpg</code>: a dog photographed from behind with no face visible, and attention on the head and shoulders it can see.</li>
+<li><code>5529.jpg</code>, the most confident error in the test set at 0.9996: a small fluffy puppy shot from above with its head lowered, so the face is essentially unavailable. Attention sits on the compact body, which is about as cat-shaped as a dog gets.</li>
+<li><code>4808.jpg</code>: a pale cream dog nosing the ground, head down and face hidden, with the heat on the lowered head.</li>
+<li><code>1618.jpg</code>: a small wiry-haired terrier standing in profile, and the easiest of the six to sympathize with. It is slight and narrow-waisted, with large triangular ears set wide on the head and tufted fur bristling around the muzzle in a way that reads as a cat’s ruff. Attention sits on the face, which is exactly where those cat-like features are concentrated. Shown this photograph at a glance, a person could make the same call.</li>
+<li><code>9960.jpg</code>: three cats in a shelter enclosure at low resolution, two of them rearing up on their hind legs. The count is probably the difficulty in itself. The model emits one label for the whole frame, but there are three candidate subjects here and nothing to indicate which one the label is about. Attention settles on one of them, and rearing on the hind legs is a dog-typical posture, so both the subject it picked and the pose it saw push away from cat.</li>
 </ul>
-<p>In three of these the animal’s face is absent, turned away, or too small to resolve. That matches the correct-prediction maps above, where heat lands on the muzzle and eyes every single time. The model is strongly face-driven, so photographs that deny it a face are exactly where it fails, and the maps show it hunting in the right place and coming up short.</p>
-<p><strong>One is a real model weakness, and here the map is genuinely diagnostic.</strong> <code>8959.jpg</code> is a grey tabby in profile, unambiguously a cat, wearing a pink collar, called dog at 0.982. Nothing about the image is hard for a human. The attention map shows why: the heat sits on the chest and collar, and the cat’s face is left in the cold part of the map. The model classified this animal on the strength of a collar and a raised-head profile, both far more common on dogs in this dataset, while declining to look at the one region that would have settled it. That is a specific, nameable defect rather than a shrug.</p>
-<p><strong>The cross-cutting finding is what the six have in common.</strong> In all of them attention is on the animal. Not one is a case of the model reading the background. That is a sharp contrast with the Grad-CAM panel on the first four errors above, where two of the four show attention abandoning the animal for outdoor vegetation, leaf litter in one and lawn grass in the other, with both of those images being cats called dogs.</p>
-<p>The two groups differ in confidence, and the direction is informative. Every one of the six most confident errors sits between 0.95 and 0.999, and every one looks at the animal. The two background-shortcut cases sit at 0.55 and 0.80, below the whole confident band, and one of them is barely past the decision boundary at all. On this evidence the model has two distinct failure modes with distinct signatures: it misreads animals it has genuinely examined, confidently, and it guesses from context when the animal itself is not telling it much, tentatively. The sample is small enough that this is a hypothesis rather than a measurement, but it is a testable one, and it is not a hypothesis the accuracy number could have produced.</p>
-<p><strong>The aggregate metrics conceal all of this.</strong> The confusion matrix is nearly symmetric, 24 cats read as dogs against 20 the other way, which reads as an unbiased model. Yet four of the six most confident errors are cats called dogs, and both background-shortcut failures are outdoor cats called dogs. There is a directional failure mode; it is simply too small to move the summary statistics. A confusion matrix can tell you the error rate is balanced without telling you the errors share a cause.</p>
-<p><strong>What this implies for the ceiling.</strong> At 98.82% test accuracy, 44 errors remain out of 3,744, and the maps suggest they are not all the same kind of thing. Some are mislabeled or genuinely unresolvable, so buying accuracy with a larger backbone or a longer schedule would be chasing noise. The two interventions the evidence actually supports are narrower: break the background correlation with augmentation or with more indoor dogs and outdoor cats, and address the model’s willingness to decide on accessories like collars rather than on the face. Neither is a conclusion the accuracy number on its own could have suggested.</p>
+<p>That last one shares a problem with the label-noise case above, reached from a different direction: one image, several animals, one label. <code>10266.jpg</code> has two species in frame and <code>9960.jpg</code> has three animals of a single species, and in both the model is asked to summarize a crowded picture with one answer. It is worth separating that from the rest, because no amount of training fixes an image whose label was never well defined.</p>
+<p>In three of these four the animal’s face is turned away, lowered, or too small to resolve. That matches the correct-prediction maps above, where heat lands on the muzzle and eyes every single time, for cats and dogs alike. The model is strongly face-driven, so photographs that deny it a face are exactly where it fails, and the maps show it hunting in the right place and coming up short.</p>
+<p><strong>One is a real model weakness, and here the map is diagnostic.</strong> <code>5474.jpg</code> is a grey kitten facing the camera in a pet store, unmistakably a cat: large pointed ears, whiskers, a full frontal view in good light. It was called dog at 0.992. The map shows attention concentrated low, on the muzzle and chest, with the eyes and ears left in the cool part of the map. The one image in this set where the face was fully available is also the one where the model declined to use it, and it got the answer wrong. That is a specific, nameable defect rather than a shrug.</p>
+<p><strong>The cross-cutting finding is what the six have in common.</strong> In every one of them, attention is on an animal. Not one is a case of the model reading the background. The failures at the top of the confidence ranking are failures of recognition, not of localization.</p>
+<p>That contrast is sharpest against the Grad-CAM panel on the first four errors above, which is a lower-confidence sample and behaves differently. Two of those four also attend to the animal. The other two do not, and they are the interesting ones:</p>
+<ul>
+<li>One, at 0.88, is a small black kitten held up by a child against a lawn. The child occupies most of the frame, and the heat spreads over the grass and the child rather than over the kitten.</li>
+<li>The other, at 0.78, <strong>is not a photograph at all.</strong> It is a line-drawing placeholder graphic reading “PHOTO COMING SOON!”, of the kind an adoption listing shows before a real picture is uploaded. The attention map has nothing to land on and smears around the borders.</li>
+</ul>
+<p>That second file deserves dwelling on, because it is a data-quality problem nothing earlier in this project could have caught. The integrity pass in notebook 01 rejects files that fail to decode; this one decodes perfectly, because it is a perfectly valid image. It is simply not a photograph of a dog. The confident-error ranking pointed at it and the attention map explained it, which is a use for Grad-CAM beyond model debugging: it audits the data.</p>
+<p><strong>A caution about reading too much into six images.</strong> An earlier run of this notebook, before the training seed was fixed, produced a different set of confident errors and with them an apparent directional bias, most of the worst errors being cats called dogs. That pattern did not survive re-training. This run splits three and three, and the confusion matrix leans the other way, 18 cats read as dogs against 22 dogs read as cats. The aggregate error count was stable across the two runs, 44 and then 40; which specific images landed in the tail was not. The structural findings did reproduce: attention on the face when correct, attention on the animal for the most confident errors, and the same multi-animal file surfacing near the top both times. Those are worth trusting. Counts over six examples are not, which is the reason the seed now exists.</p>
+<p><strong>What this implies for the ceiling.</strong> At 98.93% test accuracy, 40 errors remain out of 3,744, and the maps say they are not all the same kind of thing. At least one is not a dog photograph at all, at least one contains both animals, and several are images where the animal’s face is simply not visible. Buying accuracy with a larger backbone or a longer schedule would be chasing a mixture of noise and genuinely unresolvable pictures. The interventions the evidence actually supports are narrower: screen the training data for non-photographs, and loosen the model’s reliance on the face by augmenting with crops that remove it, so body shape and texture have to carry more of the decision. Neither is a conclusion the accuracy number on its own could have suggested.</p>
 </section>
 </section>
 <section id="closing-notes" class="level2">
 <h2 class="anchored" data-anchor-id="closing-notes">Closing notes</h2>
-<p>The pipeline here is a fine-tuned ResNet18 reaching 98.82% accuracy on a held-out test set that neither training nor checkpoint selection ever saw, evaluated past that headline number in three ways: per-class metrics and a confusion matrix to check for asymmetric bias, Grad-CAM to ask whether the model attends to the animal rather than to background correlates, and a confidence-ranked error analysis to separate label noise from genuine model weakness.</p>
-<p>The Grad-CAM step is what turned a good score into a caveat. On correct predictions attention lands on the animal’s face; on a portion of the errors it lands on outdoor vegetation instead, which is a shortcut the metrics alone would never have exposed.</p>
+<p>The pipeline here is a fine-tuned ResNet18 reaching 98.93% accuracy on a held-out test set that neither training nor checkpoint selection ever saw, evaluated past that headline number in three ways: per-class metrics and a confusion matrix to check for asymmetric bias, Grad-CAM to ask whether the model attends to the animal rather than to its surroundings, and a confidence-ranked error analysis to separate label noise from genuine model weakness.</p>
+<p>The Grad-CAM step is what turned a good score into something more useful than a score. It showed that the model is face-driven, that its most confident errors are recognition failures rather than attention failures, that one of its errors is a clear case of looking at a person and a lawn instead of the animal, and that one of the files in the dataset is not a photograph of an animal at all. None of that is visible in 98.93%.</p>
 <p>That last distinction is the practical payoff. When a portion of the remaining error is mislabeled or truly ambiguous data, the honest conclusion is that additional training or a deeper backbone would chase noise, not signal, and knowing where that ceiling sits is more useful than another decimal place of accuracy.</p>
 
 

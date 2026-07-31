@@ -384,7 +384,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <section id="imports" class="level2">
 <h2 class="anchored" data-anchor-id="imports">Imports</h2>
-<div id="d0e29463" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-30T19:35:03.485110Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-30T19:35:03.484710Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-30T19:35:05.437558Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-30T19:35:05.437137Z&quot;}}" data-execution_count="1">
+<div id="d0e29463" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:41:43.079215Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:41:43.078784Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:41:44.925925Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:41:44.925440Z&quot;}}" data-execution_count="1">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
@@ -407,7 +407,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="class-balance">Class balance</h2>
 <p>The images arrive in two folders, <code>Cat/</code> and <code>Dog/</code>, with filenames that are bare numbers restarting from zero in each folder. The label therefore lives in the directory name and nowhere else, which is why <code>catsdogs.dataset</code> derives it from the parent directory rather than parsing the filename.</p>
 <p>The dataset is advertised as an even 12,500 per class. It costs one cell to verify that, and the answer matters: a balanced dataset means plain accuracy is a defensible headline metric, and it means a stratified split is a cheap safeguard rather than a necessity.</p>
-<div id="0e772702" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-30T19:35:05.439111Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-30T19:35:05.438963Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-30T19:35:05.646945Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-30T19:35:05.646186Z&quot;}}" data-execution_count="2">
+<div id="0e772702" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:41:44.927540Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:41:44.927390Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:41:45.111163Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:41:45.110826Z&quot;}}" data-execution_count="2">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>paths <span class="op">=</span> list_image_paths(DATA_DIR)</span>
@@ -435,7 +435,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="file-integrity">File integrity</h2>
 <p>This section exists because this particular archive has a reputation for containing a couple of unreadable files, and a single corrupt image is enough to kill a DataLoader worker several minutes into an epoch. It is far cheaper to decode everything once now than to debug that later.</p>
 <p>Two things are worth separating here. The first is whether a file decodes at all. The second is what format it actually is, which turns out not to match the <code>.jpg</code> extension for a noticeable minority of the files.</p>
-<div id="db7db707" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-30T19:35:05.648050Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-30T19:35:05.647948Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-30T19:35:17.534064Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-30T19:35:17.533522Z&quot;}}" data-execution_count="3">
+<div id="db7db707" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:41:45.112830Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:41:45.112736Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:41:57.216735Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:41:57.216175Z&quot;}}" data-execution_count="3">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>formats <span class="op">=</span> Counter()</span>
@@ -452,10 +452,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> path <span class="kw">in</span> rejected:</span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>path<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-stderr">
-<pre><code>/home/ian/miniconda3/envs/ml/lib/python3.14/site-packages/PIL/TiffImagePlugin.py:950: UserWarning: Truncated File Read
-  warnings.warn(str(msg))</code></pre>
-</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>actual formats, regardless of the .jpg extension:
   JPEG   24737
@@ -473,18 +469,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="sample-images" class="level2">
 <h2 class="anchored" data-anchor-id="sample-images">Sample images</h2>
 <p>A handful of images from each class. The point of this cell is not to confirm that cats look like cats. It is to calibrate expectations about difficulty. Look for how often the animal is partially occluded, off-center, small in frame, photographed alongside a human, or lit badly. Those are the cases the error analysis in notebook 03 will return to.</p>
-<div id="3ebd9275" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-30T19:35:17.535360Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-30T19:35:17.535261Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-30T19:35:18.025226Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-30T19:35:18.024656Z&quot;}}" data-execution_count="4">
+<div id="3ebd9275" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:41:57.217942Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:41:57.217847Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:41:57.688246Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:41:57.687716Z&quot;}}" data-execution_count="4">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">6</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> row, class_name <span class="kw">in</span> <span class="bu">enumerate</span>([<span class="st">"Cat"</span>, <span class="st">"Dog"</span>]):</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    examples <span class="op">=</span> [p <span class="cf">for</span> p <span class="kw">in</span> loadable <span class="cf">if</span> p.parent.name <span class="op">==</span> class_name][:<span class="dv">6</span>]</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> col, path <span class="kw">in</span> <span class="bu">enumerate</span>(examples):</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        axes[row, col].imshow(Image.<span class="bu">open</span>(path).convert(<span class="st">"RGB"</span>))</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        axes[row, col].set_title(<span class="ss">f"</span><span class="sc">{</span>class_name<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>path<span class="sc">.</span>name<span class="sc">}</span><span class="ss">"</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        axes[row, col].axis(<span class="st">"off"</span>)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">6</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> row, class_name <span class="kw">in</span> <span class="bu">enumerate</span>([<span class="st">"Cat"</span>, <span class="st">"Dog"</span>]):</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    examples <span class="op">=</span> [p <span class="cf">for</span> p <span class="kw">in</span> loadable <span class="cf">if</span> p.parent.name <span class="op">==</span> class_name][:<span class="dv">6</span>]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> col, path <span class="kw">in</span> <span class="bu">enumerate</span>(examples):</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        axes[row, col].imshow(Image.<span class="bu">open</span>(path).convert(<span class="st">"RGB"</span>))</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        axes[row, col].set_title(<span class="ss">f"</span><span class="sc">{</span>class_name<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>path<span class="sc">.</span>name<span class="sc">}</span><span class="ss">"</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        axes[row, col].axis(<span class="st">"off"</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
@@ -499,20 +495,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="image-dimensions-and-aspect-ratio">Image dimensions and aspect ratio</h2>
 <p>This is the survey that actually drives a modeling decision. A pretrained ImageNet backbone expects a fixed 224x224 input, so every image has to be resized, but <em>how</em> depends on the shape of the distribution below.</p>
 <p>If aspect ratios cluster tightly near 1.0, a naive resize distorts little and is fine. The wider the spread, the more a plain <code>Resize((224, 224))</code> squashes subjects, and the more a crop-based strategy is worth preferring. Sampling every 20th image is plenty to characterize the distribution without opening 25,000 files.</p>
-<div id="fd07d4fc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-30T19:35:18.028007Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-30T19:35:18.027905Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-30T19:35:18.137390Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-30T19:35:18.137080Z&quot;}}" data-execution_count="5">
+<div id="fd07d4fc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:41:57.690714Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:41:57.690606Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:41:57.790793Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:41:57.790413Z&quot;}}" data-execution_count="5">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sample <span class="op">=</span> loadable[::<span class="dv">20</span>]  <span class="co"># every 20th image is enough to characterize the distribution</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sizes <span class="op">=</span> [Image.<span class="bu">open</span>(p).size <span class="cf">for</span> p <span class="kw">in</span> sample]</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>df_sizes <span class="op">=</span> pd.DataFrame(sizes, columns<span class="op">=</span>[<span class="st">"width"</span>, <span class="st">"height"</span>])</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>(df_sizes[<span class="st">"width"</span>] <span class="op">/</span> df_sizes[<span class="st">"height"</span>]).plot(</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    kind<span class="op">=</span><span class="st">"hist"</span>, bins<span class="op">=</span><span class="dv">30</span>, title<span class="op">=</span><span class="st">"Aspect ratio (width / height)"</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"width / height"</span>)</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>df_sizes.describe()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sample <span class="op">=</span> loadable[::<span class="dv">20</span>]  <span class="co"># every 20th image is enough to characterize the distribution</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sizes <span class="op">=</span> [Image.<span class="bu">open</span>(p).size <span class="cf">for</span> p <span class="kw">in</span> sample]</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>df_sizes <span class="op">=</span> pd.DataFrame(sizes, columns<span class="op">=</span>[<span class="st">"width"</span>, <span class="st">"height"</span>])</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>(df_sizes[<span class="st">"width"</span>] <span class="op">/</span> df_sizes[<span class="st">"height"</span>]).plot(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    kind<span class="op">=</span><span class="st">"hist"</span>, bins<span class="op">=</span><span class="dv">30</span>, title<span class="op">=</span><span class="st">"Aspect ratio (width / height)"</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"width / height"</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>df_sizes.describe()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div>
@@ -589,16 +585,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>This is worth the extra 15% precisely because the data is cheap and plentiful here. Holding out roughly 3,700 images still leaves well over 17,000 to train on, which is ample for fine-tuning a backbone whose features are already trained.</p>
 <p>Stratification matters less on a balanced dataset than it would on a skewed one, but it is nearly free and it removes sampling noise as an explanation for any class asymmetry we see in the confusion matrix later.</p>
 <p>The splits are written to <code>data/processed/</code> rather than recomputed per notebook. Both later notebooks read these CSVs, so the model is never evaluated on an image it trained on. That is a guarantee a shared random seed alone does not give you, since it silently breaks the moment someone changes a split parameter in one notebook and not the other.</p>
-<div id="adc7f56b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-30T19:35:18.138544Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-30T19:35:18.138441Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-30T19:35:18.212185Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-30T19:35:18.211673Z&quot;}}" data-execution_count="6">
+<div id="adc7f56b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-31T00:41:57.791786Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-31T00:41:57.791693Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-31T00:41:57.862818Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-31T00:41:57.862449Z&quot;}}" data-execution_count="6">
 <details open="" class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>splits <span class="op">=</span> stratified_split(loadable, val_fraction<span class="op">=</span><span class="fl">0.15</span>, test_fraction<span class="op">=</span><span class="fl">0.15</span>, seed<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, (split_paths, split_labels) <span class="kw">in</span> splits.items():</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">:5s}</span><span class="ss"> </span><span class="sc">{</span><span class="bu">len</span>(split_paths)<span class="sc">:6d}</span><span class="ss"> images, balance: </span><span class="sc">{</span>class_balance(split_paths)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    pd.DataFrame(</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"path"</span>: [<span class="bu">str</span>(p) <span class="cf">for</span> p <span class="kw">in</span> split_paths], <span class="st">"label"</span>: split_labels}</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    ).to_csv(PROCESSED_DIR <span class="op">/</span> <span class="ss">f"</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">_split.csv"</span>, index<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>splits <span class="op">=</span> stratified_split(loadable, val_fraction<span class="op">=</span><span class="fl">0.15</span>, test_fraction<span class="op">=</span><span class="fl">0.15</span>, seed<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, (split_paths, split_labels) <span class="kw">in</span> splits.items():</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">:5s}</span><span class="ss"> </span><span class="sc">{</span><span class="bu">len</span>(split_paths)<span class="sc">:6d}</span><span class="ss"> images, balance: </span><span class="sc">{</span>class_balance(split_paths)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    pd.DataFrame(</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"path"</span>: [<span class="bu">str</span>(p) <span class="cf">for</span> p <span class="kw">in</span> split_paths], <span class="st">"label"</span>: split_labels}</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    ).to_csv(PROCESSED_DIR <span class="op">/</span> <span class="ss">f"</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">_split.csv"</span>, index<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>train  17471 images, balance: {'cat': 8743, 'dog': 8728}

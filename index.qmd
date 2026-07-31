@@ -95,10 +95,12 @@ The site is rendered and published to GitHub Pages automatically by `.github/wor
 
 Complete. All three notebooks have been run end to end and are published with their outputs.
 
-**Test accuracy: 98.82%** on 3,744 held-out images that neither training nor checkpoint selection ever saw. Per-class F1 is 0.988 for both classes, and the errors are close to symmetric: 24 cats read as dogs against 20 dogs read as cats.
+**Test accuracy: 98.93%** on 3,744 held-out images that neither training nor checkpoint selection ever saw. Per-class F1 is 0.989 for both classes, and the errors are close to symmetric: 18 cats read as dogs against 22 dogs read as cats.
 
-The more interesting result is the one the accuracy number hides. Grad-CAM puts the model's attention on the animal's face for correct predictions, and reading the same maps over its mistakes separates two different kinds of failure. The most confident errors are all cases where the model examined the animal and misread it, including one where it decided on a cat's collar instead of its face. The lower-confidence errors include cases where attention leaves the animal for outdoor vegetation, and those are consistently cats classified as dogs: the model has partly learned that greenery predicts dog, which holds in this dataset and not in general.
+The more interesting result is the one the accuracy number hides. Grad-CAM puts the model's attention on the animal's face for correct predictions, of both classes, and reading the same maps over its mistakes separates two kinds of failure. The most confident errors are all cases where the model found the animal and misread it, usually because the face was turned away, lowered, or too small to resolve. Attention only leaves the animal further down the confidence ranking, where one error turns out to be a kitten held up by a child with the heat spread over the lawn and the child instead.
 
-Notebook 03 works through that evidence and what it implies about the accuracy ceiling, which is that the remaining 44 errors are a mixture of unresolvable label noise and two specific, nameable defects rather than a deficit that more training would close.
+The single most useful thing the maps surfaced is not about the model at all. One file in the dataset is a line-drawing placeholder reading "PHOTO COMING SOON!" rather than a photograph of a dog. It decodes perfectly, so the integrity check could not catch it; the attention map exposed it by having nothing to land on.
+
+Notebook 03 works through that evidence and what it implies about the accuracy ceiling, which is that the remaining 40 errors are a mixture of unresolvable images and specific, nameable defects rather than a deficit more training would close.
 
 ---

@@ -6,12 +6,19 @@ each holding numbered files. The class is taken from the directory name, so the
 individual filenames carry no meaning.
 """
 
+import warnings
 from pathlib import Path
 
 from PIL import Image
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 from torchvision import transforms
+
+# One file in the archive has a damaged EXIF block. The pixel data decodes fine,
+# so the image is kept, but PIL warns once per read and a DataLoader repeats that
+# every epoch across every worker. Silenced narrowly, by message, so that any
+# other truncation warning still surfaces.
+warnings.filterwarnings("ignore", message="Truncated File Read")
 
 CLASS_NAMES = ["cat", "dog"]
 

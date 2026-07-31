@@ -1,10 +1,31 @@
 """Training loop, with the best checkpoint (by validation loss) saved to disk."""
 
+import random
 from pathlib import Path
 
+import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
+
+
+def set_seed(seed: int = 0) -> None:
+    """Seed Python, NumPy, and torch so a training run reproduces.
+
+    Worth calling before building the model rather than only before ``fit``,
+    since the replaced classification head is randomly initialized. DataLoader
+    workers inherit a seed derived from torch's generator, so the augmentation
+    draws reproduce too, provided the worker count is unchanged.
+
+    cuDNN is pinned to deterministic kernels, which costs a little throughput
+    and buys repeatable gradients.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 def train_one_epoch(
